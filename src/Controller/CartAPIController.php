@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 /**
  * @Rest\Route("/api", name="carts_")
  */
-class CartController extends AbstractController
+class CartAPIController extends AbstractController
 {
     /** @var EntityManagerInterface */
     private $em;
@@ -114,17 +114,13 @@ class CartController extends AbstractController
      */
     public function addItem(Cart $cart, Request $request): JsonResponse
     {
-        dump($request->getContent());
-        dump($request);
         $content = json_decode($request->getContent(), true);
-        dump($content);
         $item = $content['item'] ?? null;
 
         if (null === $item) {
             $error = [
                 'message' => 'The field item cannot be null'
             ];
-            dump($error);
 
             return new JsonResponse($error, Response::HTTP_BAD_REQUEST, []);
         }
@@ -134,7 +130,6 @@ class CartController extends AbstractController
                 'message' => 'The fields productId and quantity must be defined'
             ];
 
-            dump($error);
             return new JsonResponse($error, Response::HTTP_BAD_REQUEST, []);
         }
 

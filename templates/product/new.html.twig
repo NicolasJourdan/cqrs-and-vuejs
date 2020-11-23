@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau Produit{% endblock %}
+
+{% block body %}
+    <product-creation-page inline-template v-cloak>
+        <div class="row">
+            <div class="col-md-4 offset-md-4">
+                <h1>Créer un Produit</h1>
+
+                {{ form_start(form) }}
+                    {{ form_row(form.name) }}
+                    {{ form_row(form.price, { attr: {
+                        'v-model': 'price',
+                        ':class' : "[averagePrice !== null && !isInAverage ? 'alert alert-danger' : '', averagePrice !== null && isInAverage ? 'alert alert-success' : '']",
+                    } }) }}
+
+                    <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+                {{ form_end(form) }}
+
+                {% verbatim %}
+                    <p v-if="averagePrice !== null">Prix moyen : {{ averagePrice }} €</p>
+                    <p v-else>Prix moyen : Chargement...</p>
+                {% endverbatim %}
+            </div>
+        </div>
+    </product-creation-page>
+
+{% endblock %}

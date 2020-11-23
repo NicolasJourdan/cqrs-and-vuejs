@@ -31,6 +31,14 @@
                     >
                         <a class="nav-link">Accueil</a>
                     </router-link>
+                    <router-link
+                            class="nav-item"
+                            tag="li"
+                            to="/test"
+                            active-class="active"
+                    >
+                        <a class="nav-link">Créer</a>
+                    </router-link>
                 </ul>
             </div>
         </nav>

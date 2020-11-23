@@ -3,13 +3,17 @@ import ProductAPI from '../../api/product';
 const
     FETCHING_PRODUCTS = "FETCHING_PRODUCTS",
     FETCHING_PRODUCTS_SUCCESS = "FETCHING_PRODUCTS_SUCCESS",
-    FETCHING_PRODUCTS_ERROR = "FETCHING_PRODUCTS_ERROR"
+    FETCHING_PRODUCTS_ERROR = "FETCHING_PRODUCTS_ERROR",
+    FETCHING_PRICE_AVERAGE = "FETCHING_PRICE_AVERAGE",
+    FETCHING_PRICE_AVERAGE_SUCCESS = "FETCHING_PRICE_AVERAGE_SUCCESS",
+    FETCHING_PRICE_AVERAGE_ERROR = "FETCHING_PRICE_AVERAGE_ERROR"
 ;
 
 const state = {
     isLoading: false,
     products: [],
     error: null,
+    averagePrice: null,
 };
 
 const getters = {
@@ -18,6 +22,7 @@ const getters = {
     error: state => state.error,
     hasProducts: state => state.products.length > 0,
     products: state => state.products,
+    averagePrice: state => state.averagePrice,
 };
 
 const mutations = {
@@ -36,6 +41,15 @@ const mutations = {
         state.products = [];
         state.error = error;
     },
+    [FETCHING_PRICE_AVERAGE]: (state) => {
+        state.averagePrice = null;
+    },
+    [FETCHING_PRICE_AVERAGE_SUCCESS]: (state, averagePrice) => {
+        state.averagePrice = averagePrice;
+    },
+    [FETCHING_PRICE_AVERAGE_ERROR]: (state) => {
+        state.averagePrice = null;
+    },
 };
 
 const actions = {
@@ -51,7 +65,20 @@ const actions = {
 
             return null;
         }
-    }
+    },
+    getAveragePrice: async ({ commit }) => {
+        commit(FETCHING_PRICE_AVERAGE);
+        try {
+            let response = await ProductAPI.getAveragePrice();
+            commit(FETCHING_PRICE_AVERAGE_SUCCESS, response.data.averagePrice);
+
+            return response.data.averagePrice;
+        } catch (error) {
+            commit(FETCHING_PRICE_AVERAGE_ERROR);
+
+            return null;
+        }
+    },
 };
 
 export default {

@@ -8,6 +8,6 @@ export default new VueRouter({
     mode: "history",
     routes: [
         { path: "/", component: Home },
-        { path: "*", redirect: "/" }
+        { path: "/product/new" },
     ]
 });

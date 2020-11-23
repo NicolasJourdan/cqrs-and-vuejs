@@ -31,4 +31,7 @@ export default {
     delete(productId) {
         return axios.delete("/api/products/" + productId);
     },
+    getAveragePrice() {
+        return axios.get("/api/products-average-price");
+    },
 };
