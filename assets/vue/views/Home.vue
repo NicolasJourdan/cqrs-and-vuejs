@@ -6,12 +6,6 @@
         <div class="row col">
             <ProductList/>
         </div>
-        <div class="row col">
-            <h1>Panier</h1>
-        </div>
-        <div class="row col">
-            <Cart/>
-        </div>
     </div>
 </template>
 

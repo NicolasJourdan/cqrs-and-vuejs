@@ -1,40 +1,70 @@
 <template>
-    <table class="table" v-bind:class="{ 'table-hover':!isLoading }">
-        <thead class="thead-dark">
-            <tr>
-                <th scope="col">Nom du produit</th>
-                <th scope="col">Prix</th>
-                <th scope="col"></th>
-            </tr>
-        </thead>
-        <tbody v-if="isLoading">
-            <tr><td class="text-center" colspan="3">Chargement des produits...</td></tr>
-        </tbody>
-        <tbody v-else-if="hasError">
-            <tr><td class="text-center" colspan="3">{{ error }}</td></tr>
-        </tbody>
-        <tbody v-else-if="!hasProducts">
-            <tr><td class="text-center" colspan="3">Pas de produits actuellement.</td></tr>
-        </tbody>
-        <tbody v-else>
-            <ProductItem
-                    v-for="product in products"
-                    :key="product.id"
-                    :name="product.name"
-                    :price="product.price"
-                    :id="product.id"
-            />
-        </tbody>
-    </table>
+    <div class="container mt-3 mb-5">
+        <b-row class="mb-4">
+            <b-col md="4">
+                <b-form-input v-model="filter" type="search" id="filterInput" placeholder="Rechercher un produit ou un prix"></b-form-input>
+            </b-col>
+        </b-row>
+        <b-row>
+            <b-col>
+                <b-overlay :show="isProcessing" rounded="sm">
+                    <b-table
+                            striped
+                            hover
+                            :items="products"
+                            :filter="filter"
+                            :fields="fields"
+                            :current-page="currentPage"
+                            :per-page="perPage"
+                            :head-variant="'dark'"
+                            :sort-by.sync="sortBy"
+                            :sort-desc.sync="sortDesc"
+                            sort-icon-left
+                    >
+                        <template v-slot:cell(actions)="data">
+                            <div>
+                                <b-button variant="primary" @click="addToCart(data.item.id)">
+                                    <b-icon icon="cart-plus"></b-icon>
+                                </b-button>
+                                <b-button v-b-modal="'modal-' + data.item.id">
+                                    <b-icon icon="zoom-in"></b-icon>
+                                </b-button>
+                                <ProductModal :product="data.item"/>
+                            </div>
+                        </template>
+                    </b-table>
+                    <b-pagination
+                            v-model="currentPage"
+                            :total-rows="rows"
+                            :per-page="perPage"
+                    ></b-pagination>
+                </b-overlay>
+            </b-col>
+        </b-row>
+    </div>
 </template>
 
 <script>
-    import ProductItem from "./ProductItem";
+    import ProductModal from "./ProductModal";
 
     export default {
         name: "ProductList",
         components: {
-            ProductItem
+            ProductModal
+        },
+        data() {
+            return {
+                filter: "",
+                perPage: 10,
+                currentPage: 1,
+                fields: [
+                    { key: "nom_du_produit", sortable: true, class: "align-middle" },
+                    { key: "prix", sortable: true, class: "align-middle" },
+                    { key: "actions", sortable: false, class: "align-middle" },
+                ],
+                sortBy: 'prix',
+                sortDesc: false,
+            };
         },
         created() {
             this.$store.dispatch('product/getAll');
@@ -53,8 +83,30 @@
                 return this.$store.getters['product/hasProducts'];
             },
             products() {
-                return this.$store.getters['product/products'];
+                let products = this.$store.getters['product/products'];
+                let data = [];
+                products.forEach(function (element) {
+                    data.push({
+                        id: element.id,
+                        nom_du_produit: element.name,
+                        prix: element.price,
+                        url: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MX0H2_AV2?wid=1144&hei=1144&fmt=jpeg&qlt=80&op_usm=0.5,0.5&.v=1567304952106"
+                    });
+                });
+
+                return data;
             },
-        }
+            rows () {
+                return this.products.length;
+            },
+            isProcessing() {
+                return this.$store.getters['cart/isProcessing'];
+            }
+        },
+        methods: {
+            addToCart(id) {
+                this.$store.dispatch('cart/addToCart', id);
+            },
+        },
     }
 </script>

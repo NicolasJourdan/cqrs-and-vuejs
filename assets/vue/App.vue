@@ -34,15 +34,21 @@
                     <router-link
                             class="nav-item"
                             tag="li"
-                            to="/test"
+                            to="/cart"
                             active-class="active"
                     >
-                        <a class="nav-link">Créer</a>
+                        <a class="nav-link">
+                            Mon panier
+                            <b-badge pill variant="primary" v-if="!isLoading">{{ itemsCount }}</b-badge>
+                            <b-badge pill variant="primary" v-else></b-badge>
+                        </a>
                     </router-link>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/product/new">Créer un produit</a>
+                    </li>
                 </ul>
             </div>
         </nav>
-
         <router-view />
     </div>
 </template>
@@ -50,5 +56,18 @@
 <script>
     export default {
         name: "App",
+        created() {
+            this.$store.dispatch('cart/getCart');
+        },
+        computed: {
+            itemsCount() {
+                let items = this.$store.getters['cart/items'];
+
+                return items.length;
+            },
+            isLoading() {
+                return this.$store.getters['cart/isLoading'];
+            },
+        }
     }
 </script>
