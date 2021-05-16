@@ -14,5 +14,4 @@ return [
     Symfony\Bundle\MakerBundle\MakerBundle::class => ['dev' => true],
     Symfony\WebpackEncoreBundle\WebpackEncoreBundle::class => ['all' => true],
     FOS\RestBundle\FOSRestBundle::class => ['all' => true],
-    \NicolasJourdan\AwesomeBundle\AwesomeBundle::class => ['all' => true],
 ];
