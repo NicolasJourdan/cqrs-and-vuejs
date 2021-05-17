@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=ProductRepository::class)
@@ -14,16 +15,28 @@ class Product
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     *
+     * @var int
+     *
+     * @Groups({"elastica"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
+     * @var string
+     *
+     * @Groups({"elastica"})
      */
     private $name;
 
     /**
      * @ORM\Column(type="float")
+     *
+     * @var float
+     *
+     * @Groups({"elastica"})
      */
     private $price;
 

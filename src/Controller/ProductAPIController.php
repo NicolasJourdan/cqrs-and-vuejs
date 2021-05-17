@@ -3,13 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Product;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -19,15 +20,20 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class ProductAPIController extends AbstractController
 {
-    /** @var EntityManagerInterface */
-    private $em;
+    /** @var ProductRepository */
+    private $productRepository;
 
     /** @var SerializerInterface */
     private $serializer;
 
-    public function __construct(EntityManagerInterface $em, SerializerInterface $serializer)
+    /**
+     * ProductAPIController constructor.
+     * @param ProductRepository $productRepository
+     * @param SerializerInterface $serializer
+     */
+    public function __construct(ProductRepository $productRepository, SerializerInterface $serializer)
     {
-        $this->em = $em;
+        $this->productRepository = $productRepository;
         $this->serializer = $serializer;
     }
 
@@ -38,7 +44,7 @@ class ProductAPIController extends AbstractController
      */
     public function getAll(): JsonResponse
     {
-        $products = $this->em->getRepository(Product::class)->findAll();
+        $products = $this->productRepository->getAll();
         $data = $this->serializer->serialize($products, JsonEncoder::FORMAT);
 
         return new JsonResponse($data, Response::HTTP_OK, [], true);
@@ -47,13 +53,22 @@ class ProductAPIController extends AbstractController
     /**
      * @Rest\Get("/products/{id}", name="get_one")
      *
-     * @param Product $product
+     * @param int $id
      *
      * @return JsonResponse
      */
-    public function getOne(Product $product): JsonResponse
+    public function getOne(int $id): JsonResponse
     {
-        $data = $this->serializer->serialize($product, JsonEncoder::FORMAT);
+        $product = $this->productRepository->getOne($id);
+
+        if (null === $product) {
+            throw new NotFoundHttpException('No product found with id ' . $id);
+        }
+
+        $data = $this->serializer->serialize(
+            $product,
+            JsonEncoder::FORMAT
+        );
 
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
@@ -81,8 +96,7 @@ class ProductAPIController extends AbstractController
             ->setPrice($price)
         ;
 
-        $this->em->persist($product);
-        $this->em->flush();
+        $this->productRepository->save($product);
 
         $data = $this->serializer->serialize($product, JsonEncoder::FORMAT);
 
@@ -112,7 +126,7 @@ class ProductAPIController extends AbstractController
             $product->setPrice($price);
         }
 
-        $this->em->flush();
+        $this->productRepository->save($product);
 
         $data = $this->serializer->serialize($product, JsonEncoder::FORMAT);
 
@@ -129,8 +143,7 @@ class ProductAPIController extends AbstractController
     public function delete(Product $product): JsonResponse
     {
 
-        $this->em->remove($product);
-        $this->em->flush();
+        $this->productRepository->remove($product);
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT, []);
     }
@@ -142,7 +155,7 @@ class ProductAPIController extends AbstractController
      */
     public function averagePrice(): JsonResponse
     {
-        $products = $this->em->getRepository(Product::class)->findAll();
+        $products = $this->productRepository->getAll();
 
         if (!$products) {
             return new JsonResponse(['averagePrice' => 0], Response::HTTP_OK);
@@ -150,11 +163,13 @@ class ProductAPIController extends AbstractController
 
         $amountTotalPrice = 0;
 
-        /** @var Product $product */
         foreach ($products as $product) {
             $amountTotalPrice += $product->getPrice();
         }
 
-        return new JsonResponse(['averagePrice' => round($amountTotalPrice/count($products), 2)], Response::HTTP_OK);
+        return new JsonResponse(
+            ['averagePrice' => round($amountTotalPrice/count($products), 2)],
+            Response::HTTP_OK
+        );
     }
 }

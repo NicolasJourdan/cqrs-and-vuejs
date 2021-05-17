@@ -2,49 +2,99 @@
 
 namespace App\Repository;
 
+use App\Builder\ProductBuilder;
 use App\Entity\Product;
+use App\Model\Product as ProductDto;
+use App\Elastica\Repository\ProductRepository as ProductElasticaRepository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method Product|null find($id, $lockMode = null, $lockVersion = null)
  * @method Product|null findOneBy(array $criteria, array $orderBy = null)
- * @method Product[]    findAll()
  * @method Product[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class ProductRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    /** @var ProductElasticaRepository */
+    private $elasticaRepository;
+
+    /** @var ProductBuilder */
+    private $productBuilder;
+
+    /**
+     * ProductRepository constructor.
+     *
+     * @param ManagerRegistry $registry
+     * @param ProductBuilder $productBuilder
+     * @param ProductElasticaRepository $elasticaRepository
+     */
+    public function __construct(
+        ManagerRegistry $registry,
+        ProductBuilder $productBuilder,
+        ProductElasticaRepository $elasticaRepository
+    ) {
         parent::__construct($registry, Product::class);
+        $this->productBuilder = $productBuilder;
+        $this->elasticaRepository = $elasticaRepository;
     }
 
-    // /**
-    //  * @return Product[] Returns an array of Product objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @return ProductDto[]
+     */
+    public function getAll(): array
     {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('p.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+        try {
+            return $this->elasticaRepository->getAll();
+        } catch (Exception $exception) {
+            return $this->productBuilder->buildFromEntities($this->getAllEntities());
+        }
     }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?Product
+    /**
+     * @return array
+     */
+    public function getAllEntities(): array
     {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->findAll();
     }
-    */
+
+    /**
+     * @param int $id
+     *
+     * @return ProductDto|null
+     */
+    public function getOne(int $id): ?ProductDto
+    {
+        try {
+            return $this->elasticaRepository->getOne($id);
+        } catch (Exception $exception) {
+            return $this->productBuilder->buildFromEntity($this->find($id));
+        }
+    }
+
+    /**
+     * @param Product $product
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function save(Product $product): void
+    {
+        $this->_em->persist($product);
+        $this->_em->flush();
+    }
+
+    /**
+     * @param Product $product
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function remove(Product $product): void
+    {
+        $this->_em->remove($product);
+        $this->_em->flush();
+    }
 }

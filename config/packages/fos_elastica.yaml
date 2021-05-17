@@ -1,0 +1,21 @@
+# Read the documentation: https://github.com/FriendsOfSymfony/FOSElasticaBundle/blob/master/doc/setup.md
+fos_elastica:
+    serializer: ~
+    clients:
+        default: { url: '%env(ELASTICSEARCH_URL)%' }
+    indexes:
+        product:
+            types:
+                product:
+                    serializer:
+                        groups: [ elastica ]
+                    persistence:
+                        driver: orm
+                        model: App\Entity\Product
+                        provider: { service: 'App\Elastica\Provider\ProductProvider' }
+                        finder: { service: 'app.elastica_finder' }
+                        repository: App\Elastica\Repository\ProductRepository
+                        listener:
+                            insert: true
+                            update: true
+                            delete: true

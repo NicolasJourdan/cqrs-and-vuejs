@@ -27,5 +27,17 @@ services:
         resource: '../src/Controller/'
         tags: ['controller.service_arguments']
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    Elastica\SearchableInterface: '@fos_elastica.index.product'
+
+    App\Elastica\Provider\ProductProvider:
+        tags:
+            - { name: fos_elastica.pager_provider, index: product, type: product }
+        public: true
+
+    App\Elastica\Repository\ProductRepository:
+        $finder: '@app.elastica_finder'
+
+    app.elastica_finder:
+        class: FOS\ElasticaBundle\Finder\TransformedFinder
+        arguments:
+            $transformer: '@App\Elastica\Transformer\Transformer'
